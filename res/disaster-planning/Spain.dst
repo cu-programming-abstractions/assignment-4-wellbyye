@@ -1,0 +1,18 @@
+A Coruna (0, 0): Vigo
+Oviedo (1, 0): Leon
+Bilbao (2, 0): Zaragoza, Valladolid
+Vigo (0, 1): A Coruna, Leon
+Leon (1, 1): Oviedo, Vigo, Valladolid
+Huesca (3, 0): Zaragoza
+Salamanca (1, 2): Valladolid
+Valladolid (2, 2): Leon, Bilbao, Madrid
+Zaragoza (3, 2): Huesca, Bilbao, Barcelona, Madrid
+Barcelona (4, 2): Zaragoza, Valencia
+Madrid (2, 3): Valladolid, Toledo, Zaragoza, Valencia
+Toledo (2, 4): Madrid, Valencia, Cordoba
+Valencia (3, 4): Barcelona, Alicante, Madrid, Toledo
+Sevilla (1, 5): Cadiz, Cordoba
+Cordoba (2, 5): Sevilla, Toledo, Malaga
+Alicante (3, 5): Valencia
+Cadiz (1, 6): Sevilla
+Malaga (2, 6): Cordoba

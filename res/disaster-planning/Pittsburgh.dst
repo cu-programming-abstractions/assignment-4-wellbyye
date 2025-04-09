@@ -1,0 +1,22 @@
+# This file contains information about my hometown, Pittsburgh. It's (loosely) adapted from
+# this map:
+#
+# https://en.wikipedia.org/wiki/List_of_Pittsburgh_neighborhoods
+#
+# I tried to make it look like a rooster!
+
+
+East Liberty (4, 0): Shadyside, Squirrel Hill, Strip District, Oakland, East Hills
+Shadyside (4, 1): East Liberty, Squirrel Hill, Strip District, Oakland, East Hills
+Squirrel Hill (4, 2): St. Clair, Shadyside, Oakland
+Oakland (3, 2): East Liberty, Shadyside, Squirrel Hill, Strip District
+Strip District (2, 2): East Liberty, Shadyside, Oakland, Allegheny
+Allegheny (1, 1): Strip District, Duquesne Heights, North Shore
+Duquesne Heights (2, 1): Allegheny, Mount Washington
+North Shore (1, 2): Allegheny, Mount Washington, East Carnegie
+Mount Washington (1, 3): North Shore, Bon Air, St. Clair
+Bon Air (2, 4): Mount Washington, St. Clair
+St. Clair (2, 3): Mount Washington, Bon Air, Hazelwood, Squirrel Hill
+Hazelwood (3, 4): St. Clair
+East Carnegie (0, 1): North Shore
+East Hills (5, 0): Shadyside, East Liberty

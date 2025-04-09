@@ -1,0 +1,13 @@
+# Extensions as a Map of some Middle Eastern cities.
+
+Jerusalem (0, 0): Alexandria, Amman, Damascus, Beirut
+Alexandria (-1, -1): Tripoli, Cairo, Jerusalem
+Tripoli (-2, -1): Alexandria
+Cairo (-1, -2): Alexandria
+Amman (0, -1): Jerusalem, Baghdad
+Baghdad (1, -1): Damascus, Amman
+Damascus (1, 1): Jerusalem, Baghdad, Beirut
+Beirut (0, 1): Jerusalem, Damascus, Izmir
+Izmir (-1, 1): Beirut, Istanbul
+Istanbul (-2, 1): Izmir, Athens
+Athens (-2, 0): Istanbul, Izmir

@@ -1,0 +1,23 @@
+# This file contains information about major cities in Ecuador, the Latin American country my family is from.
+# It's inspired by / stolen from this excellent schematic:
+#
+# https://wwwnc.cdc.gov/travel/destinations/traveler/none/ecuador
+#
+# The file format is
+#
+#    Name (X, Y): Link1, Link2, ..., LinkN
+#
+#
+# The X and Y coordinates are in "logical space." You can have the size of one unit mean
+# whatever you'd like it to mean, and our code will map everything nicely into the display
+# window.
+
+
+Manta (2, 3): Portoviejo
+Portoviejo (3, 3): Manta, Guayaquil, Quito
+Guayaquil (3, 5): Portoviejo, Riobamba
+Quito (5, 2): Portoviejo, Riobamba
+Riobamba (6, 4): Cuenca, Guayaquil
+Cuenca (5, 5): Machala, Loja, Riobamba
+Machala (4, 6): Loja, Cuenca
+Loja (5, 7): Machala, Cuenca

@@ -1,0 +1,27 @@
+# This file contains information about the East Bay Area (my home!). It's (LOOSELY) adapted from
+# this  map:
+#
+# https://www.gm-maps.com/osm_tiles/11/329/790.png
+#
+# The file format is
+#
+#    Name (X, Y): Link1, Link2, ..., LinkN
+#
+# Our code will automatically insert roads in the reverse direction, so if city A links to
+# city B, then city B will implicitly link back to A. Just for completeness, though, we've
+# included everything here.
+#
+# The X and Y coordinates are in "logical space." You can have the size of one unit mean
+# whatever you'd like it to mean, and our code will map everything nicely into the display
+# window.
+
+
+Orinda (0, 0): Lafayette, Berkeley, Moraga
+Moraga (-1, -1): Orinda, Lafayette
+Lafayette (1, 0): Orinda, Walnut Creek, Moraga
+Walnut Creek (2, 0): Lafayette, Pleasant Hill, Danville
+Danville (3, 0): Walnut Creek
+Pleasant Hill (2, 1): Concord, Walnut Creek
+Concord (2, 2): Pleasant Hill, Martinez
+Martinez (2, 3): Concord
+Berkeley (-1, 0): Orinda

@@ -1,0 +1,19 @@
+# This file's information is based on Costa Rica.
+# Reference: https://www.nationsonline.org/oneworld/map/costa-rica-map.htm
+#
+# The file format is
+#
+#    Name (X, Y): Link1, Link2, ..., LinkN
+
+Liberia (0, 1): Heredia
+Pital (0, 4): Liberia
+Heredia (1, 7): San Jose
+San Jose (1, 8): Cartago
+Cartago (1, 9): Turrialba
+Puerto Vielo (2, 4): Pital
+Guapiles (2, 7): Puerto Vielo
+Turrialba (2, 9): Siquirres
+Guacimo (3, 7): Guapiles
+Puerto Limon (3, 8): San Jose
+Siquirres (3, 9): Guacimo, Matina
+Matina (4, 10): Puerto Limon

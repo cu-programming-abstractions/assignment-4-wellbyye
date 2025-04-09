@@ -1,0 +1,30 @@
+# Authors: Harviel Arcilla, Colette Do
+#
+# This file contains information about Vietnam
+#
+#
+#
+# The file format is
+#
+#    Name (X, Y): Link1, Link2, ..., LinkN
+#
+# Our code will automatically insert roads in the reverse direction, so if city A links to
+# city B, then city B will implicitly link back to A. Just for completeness, though, we've
+# included everything here.
+#
+# The X and Y coordinates are in "logical space." You can have the size of one unit mean
+# whatever you'd like it to mean, and our code will map everything nicely into the display
+# window.
+
+
+Hanoi (0,0): Haiphong, Nam Dinh
+Haiphong (1,0): Hanoi, Nam Dinh
+Nam Dinh (0,1): Hanoi, Nam Dinh, Vinh
+Vinh (0, 3): Nam Dinh, Hue
+Hue (2, 5): Vinh, Da Nang
+Da Nang (4, 7): Hue, Qui Nhon
+Qui Nhon (4, 9): Da Nang, Nha Trang
+Nha Trang (4, 11): Qui Nhon, Ho Chi Minh City
+Ho Chi Minh City (1, 13): Nha Trang, Can Tho, Vung Tau
+Can Tho (0, 14): Ho Chi Minh City, Vung Tau
+Vung Tau (1, 14): Ho Chi Minh City, Can Tho

@@ -1,0 +1,25 @@
+# This file contains information about connections between states
+# in Germany.
+#     Berlin, Bayern (Bavaria), Niedersachsen (Lower Saxony), 
+#     Baden-Wurttemberg, Rheinland-Pfalz (Rhineland-Palatinate), Sachsen (Saxony), 
+#     Thuringen (Thuringia), Hessen, Nordrhein-Westfalen (North Rhine-Westphalia), 
+#     Sachsen-Anhalt (Saxony-Anhalt), Brandenburg, Mecklenburg-Vorpommern,
+#     Hamburg, Schleswig-Holstein, Saarland, Bremen
+
+
+Berlin (-1, 0): Brandenburg
+Bayern (1, 2): Baden-Wurttemberg, Hessen, Thuringen, Sachsen
+Niedersachsen (2, 0): Bremen, Hamburg, Schleswig-Holstein, Mecklenburg-Vorpommern, Sachsen-Anhalt, Thuringen, Hessen, Nordrhein-Westfalen
+Baden-Wurttemberg (3, 3): Hessen, Bayern, Rheinland-Pfalz
+Rheinland-Pfalz (4, 2): Saarland, Hessen, Baden-Wurttemberg, Nordrhein-Westfalen
+Sachsen (0, 1): Brandenburg, Thuringen, Sachsen-Anhalt, Bayern
+Thuringen (1, 1): Bayern, Sachsen, Hessen, Baden-Wurttemberg
+Hessen (2, 1): Baden-Wurttemberg, Bayern, Rheinland-Pfalz, Nordrhein-Westfalen, Thuringen, Niedersachsen
+Nordrhein-Westfalen (3, 1): Hessen, Niedersachsen, Rheinland-Pfalz
+Sachsen-Anhalt (1, 0): Brandenburg, Sachsen, Thuringen, Niedersachsen
+Brandenburg (0, 0): Sachsen-Anhalt, Mecklenburg-Vorpommern, Sachsen
+Mecklenburg-Vorpommern (0, -1): Brandenburg, Schleswig-Holstein, Niedersachsen
+Hamburg (3, -1): Niedersachsen, Schleswig-Holstein
+Schleswig-Holstein (3, -3): Hamburg, Niedersachsen, Mecklenburg-Vorpommern
+Saarland (4, 3): Rheinland-Pfalz
+Bremen (3, -4): Niedersachsen
