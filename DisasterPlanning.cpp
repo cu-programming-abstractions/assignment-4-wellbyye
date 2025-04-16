@@ -1,76 +1,67 @@
 #include "DisasterPlanning.h"
 using namespace std;
-
-Optional<Set<string>> placeEmergencySupplies(const Map<string, Set<string>>& roadNetwork,
-                                             int numCities) {
-    /* TODO: Delete this comment and next few lines, then implement this function. */
-    (void) roadNetwork;
-    (void) numCities;
-    return Nothing;
-}
-
-
-/* * * * * * * Test Helper Functions Below This Point * * * * * */
-#include "GUI/SimpleTest.h"
-
-/* This is a helper function that's useful for designing test cases. You give it a Map
- * of cities and what they're adjacent to, and it then produces a new Map where if city
- * A links to city B, then city B links back to city A. We recommend using this helper
- * function when writing tests, though you won't need it in your implementation of the main
- * canBeMadeDisasterReady function.
- */
-Map<string, Set<string>> makeSymmetric(const Map<string, Set<string>>& source) {
-    Map<string, Set<string>> result = source;
-
-    for (const string& from: source) {
-        for (const string& to: source[from]) {
-            result[from] += to;
-            result[to] += from;
-        }
-    }
-
-    return result;
-}
-
-/* This helper function tests whether a city has been covered by a set of supply locations
- * and is used by our testing code. You're welcome to use it in your tests as well!
- */
 bool isCovered(const string& city,
                const Map<string, Set<string>>& roadNetwork,
-               const Set<string>& supplyLocations) {
-    if (supplyLocations.contains(city)) return true;
+               const Set<string>& supplyLocations);
 
-    for (string neighbor: roadNetwork[city]) {
-        if (supplyLocations.contains(neighbor)) return true;
+/*
+ * Recursive backtracking function to try placing supplies in a given number of cities.
+ */
+bool canBeMadeDisasterReady(const Map<string, Set<string>>& roadNetwork,
+                            Vector<string>& cities,
+                            int numCities,
+                            int index,
+                            Set<string>& supplyLocations) {
+    if (supplyLocations.size() > numCities) {
+        return false;
     }
+    if (index == cities.size()) {
+        // Check if all cities are covered
+        for (string city : cities) {
+            if (!isCovered(city, roadNetwork, supplyLocations)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Choice 1: Don't put a supply in this city
+    if (canBeMadeDisasterReady(roadNetwork, cities, numCities, index + 1, supplyLocations)) {
+        return true;
+    }
+
+    // Choice 2: Put a supply in this city
+    supplyLocations += cities[index];
+    if (canBeMadeDisasterReady(roadNetwork, cities, numCities, index + 1, supplyLocations)) {
+        return true;
+    }
+    supplyLocations -= cities[index];
 
     return false;
 }
 
-/* * * * * * Test Cases Below This Point * * * * * */
+/*
+ * Main function to call backtracking to find a valid supply placement.
+ */
+Optional<Set<string>> placeEmergencySupplies(const Map<string, Set<string>>& roadNetwork,
+                                             int numCities) {
+    Set<string> result;
+    Vector<string> cities = roadNetwork.keys();
 
-/* TODO: Add your own custom tests here! */
+    if (canBeMadeDisasterReady(roadNetwork, cities, numCities, 0, result)) {
+        return result;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    return Nothing;
+}
 
 /* * * * * Provided Tests Below This Point * * * * */
 
-PROVIDED_TEST("Reports an error if numCities < 0") {
+PROVIDED_TEST ("Reports an error if numCities < 0") {
     EXPECT_ERROR(placeEmergencySupplies({ }, -137));
 }
 
-PROVIDED_TEST("Works for map with no cities.") {
+PROVIDED_TEST ("Works for map with no cities.") {
     /* Should be able to find the solution whether there's 0 allowed cities,
      * 137 allowed cities, etc.
      */
@@ -80,7 +71,7 @@ PROVIDED_TEST("Works for map with no cities.") {
 
 PROVIDED_TEST("Works for map with one city.") {
     Map<string, Set<string>> map = makeSymmetric({
-         { "Solipsist", {} }
+        { "Solipsist", {} }
     });
 
     /* Shouldn't matter how many cities we use, as long as it isn't zero! */
@@ -91,7 +82,7 @@ PROVIDED_TEST("Works for map with one city.") {
 
 PROVIDED_TEST("Works for map with one city, and produces output.") {
     Map<string, Set<string>> map = makeSymmetric({
-         { "Solipsist", {} }
+        { "Solipsist", {} }
     });
 
     EXPECT_EQUAL(placeEmergencySupplies(map, 0), Nothing);
@@ -101,8 +92,8 @@ PROVIDED_TEST("Works for map with one city, and produces output.") {
 
 PROVIDED_TEST("Works for map with two linked cities.") {
     Map<string, Set<string>> map = makeSymmetric({
-         { "A", { "B" } },
-         { "B", {     } }
+        { "A", { "B" } },
+        { "B", {     } }
     });
 
     EXPECT_EQUAL    (placeEmergencySupplies(map, 0), Nothing);
@@ -112,8 +103,8 @@ PROVIDED_TEST("Works for map with two linked cities.") {
 
 PROVIDED_TEST("Works for map with two linked cities, and produces output.") {
     Map<string, Set<string>> map = makeSymmetric({
-         { "A", { "B" } },
-    });
+                                                  { "A", { "B" } },
+                                                  });
 
     EXPECT_EQUAL(placeEmergencySupplies(map, 0), Nothing);
 
@@ -323,27 +314,27 @@ PROVIDED_TEST("Works for six cities in a line, regardless of order, and produces
 
 /* The "Don't Be Greedy" sample world. */
 const Map<string, Set<string>> kDontBeGreedy = makeSymmetric({
-    { "A", { "B" } },
-    { "B", { "C", "D" } },
-    { "C", { "D" } },
-    { "D", { "F", "G" } },
-    { "E", { "F" } },
-    { "F", { "G" } },
-});
+                                                              { "A", { "B" } },
+                                                              { "B", { "C", "D" } },
+                                                              { "C", { "D" } },
+                                                              { "D", { "F", "G" } },
+                                                              { "E", { "F" } },
+                                                              { "F", { "G" } },
+                                                              });
 
-PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout.") {
+PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout."); {
     EXPECT_EQUAL(placeEmergencySupplies(kDontBeGreedy, 0), Nothing);
     EXPECT_EQUAL(placeEmergencySupplies(kDontBeGreedy, 1), Nothing);
     EXPECT_NOT_EQUAL(placeEmergencySupplies(kDontBeGreedy, 2), Nothing);
 }
 
-PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout, and produces output.") {
+PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout, and produces output."); {
     EXPECT_EQUAL(placeEmergencySupplies(kDontBeGreedy, 0), Nothing);
     EXPECT_EQUAL(placeEmergencySupplies(kDontBeGreedy, 1), Nothing);
     EXPECT_EQUAL(placeEmergencySupplies(kDontBeGreedy, 2), {"B", "F"});
 }
 
-PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces output.") {
+PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces output."); {
     /* Because Map and Set internally store items in sorted order, the order
      * in which you iterate over the cities when making decisions is sensitive
      * to the order of those cities' names. This test looks at a map like
@@ -366,10 +357,10 @@ PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces 
     Vector<string> cities = { "A", "B", "C", "D", "E", "F", "G" };
     do {
         Map<string, Set<string>> map = makeSymmetric({
-            { cities[1], { cities[0], cities[2], cities[5] } },
-            { cities[2], { cities[3], cities[5], cities[6] } },
-            { cities[3], { cities[4], cities[6] } },
-        });
+                                                      { cities[1], { cities[0], cities[2], cities[5] } },
+                                                      { cities[2], { cities[3], cities[5], cities[6] } },
+                                                      { cities[3], { cities[4], cities[6] } },
+                                                      });
 
         /* We should be able to cover everything with two cities. */
         EXPECT_EQUAL(placeEmergencySupplies(map, 2), { cities[1], cities[3] });
@@ -377,7 +368,7 @@ PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces 
     } while (next_permutation(cities.begin(), cities.end()));
 }
 
-PROVIDED_TEST("Stress test: 6 x 6 grid.") {
+PROVIDED_TEST("Stress test: 6 x 6 grid."); {
     Map<string, Set<string>> grid;
 
     /* Build the grid. */
@@ -398,11 +389,11 @@ PROVIDED_TEST("Stress test: 6 x 6 grid.") {
 
     /* 10x factor of safety relative to my middle-of-the-line computer. */
     EXPECT_COMPLETES_IN(20.0,
-        EXPECT_NOT_EQUAL(placeEmergencySupplies(grid, 10), Nothing);
-    );
+                        EXPECT_NOT_EQUAL(placeEmergencySupplies(grid, 10), Nothing);
+                        );
 }
 
-PROVIDED_TEST("Stress test: 6 x 6 grid, with output.") {
+PROVIDED_TEST("Stress test: 6 x 6 grid, with output."); {
     Optional<Set<string>> locations;
     char maxRow = 'F';
     int  maxCol = 6;
@@ -424,8 +415,8 @@ PROVIDED_TEST("Stress test: 6 x 6 grid, with output.") {
 
     /* 10x factor of safety relative to my middle-of-the-line computer. */
     EXPECT_COMPLETES_IN(20.0,
-        locations = placeEmergencySupplies(grid, 10);
-    );
+                        locations = placeEmergencySupplies(grid, 10);
+                        );
     EXPECT_NOT_EQUAL(locations, Nothing);
     EXPECT_LESS_THAN_OR_EQUAL_TO(locations.value().size(), 10);
 

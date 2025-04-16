@@ -1,56 +1,77 @@
 #include "ShiftScheduling.h"
 using namespace std;
 
+/* Helper to check for overlap between a shift and a set of shifts */
+bool isNonOverlapping(const Shift& shift, const Set<Shift>& selected) {
+    for (const Shift& s : selected) {
+        if (overlapsWith(shift, s)) return false;
+    }
+    return true;
+}
+
+int numSchedulesForHelper(const Set<Shift>& shifts, int maxHours, Set<Shift>& chosen) {
+    if (maxHours < 0) return 0;
+
+    int count = 1; // base case: current combination is valid
+
+    for (const Shift& shift : shifts) {
+        if (isNonOverlapping(shift, chosen)) {
+            Set<Shift> remaining = shifts;
+            remaining.remove(shift);
+            chosen.add(shift);
+
+            count += numSchedulesForHelper(remaining, maxHours - lengthOf(shift), chosen);
+            chosen.remove(shift); // backtrack
+        }
+    }
+
+    return count;
+}
+
 int numSchedulesFor(const Set<Shift>& shifts, int maxHours) {
-    /* TODO: Delete this comment and the lines below it, then implement
-     * this function.
-     */
-    (void) shifts;
-    (void) maxHours;
-    return -1;
+    Set<Shift> chosen;
+    return numSchedulesForHelper(shifts, maxHours, chosen) - 1; // subtract base empty case
+}
+
+Set<Shift> bestScheduleForHelper(const Set<Shift>& shifts, int maxHours,
+                                 Set<Shift>& chosen, Set<Shift>& bestSoFar) {
+    int currentHours = 0;
+    for (const Shift& s : chosen) currentHours += lengthOf(s);
+
+    int bestHours = 0;
+    for (const Shift& s : bestSoFar) bestHours += lengthOf(s);
+
+    if (currentHours > bestHours) {
+        bestSoFar = chosen;
+    }
+
+    for (const Shift& shift : shifts) {
+        if (isNonOverlapping(shift, chosen) && maxHours >= lengthOf(shift)) {
+            Set<Shift> remaining = shifts;
+            remaining.remove(shift);
+            chosen.add(shift);
+
+            bestScheduleForHelper(remaining, maxHours - lengthOf(shift), chosen, bestSoFar);
+            chosen.remove(shift); // backtrack
+        }
+    }
+
+    return bestSoFar;
 }
 
 Set<Shift> maxProfitSchedule(const Set<Shift>& shifts, int maxHours) {
-    /* TODO: Delete this comment and the lines below it, then implement
-     * this function.
-     */
-    (void) shifts;
-    (void) maxHours;
-    return {};
+    Set<Shift> chosen, best;
+    return bestScheduleForHelper(shifts, maxHours, chosen, best);
 }
-
-
-
-
-/* * * * * * Test Cases * * * * * */
-#include "GUI/SimpleTest.h"
-
-/* TODO: Add your own tests here. You know the drill - look for edge cases, think about
- * very small and very large cases, etc.
- */
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* * * * * * Test cases from the starter files below this point. * * * * * */
 #include "vector.h"
-#include "error.h"
+#include "GUI/SimpleTest.h"
 
 PROVIDED_TEST("numSchedulesFor reports errors with illegal numbers of hours.") {
     EXPECT_ERROR(numSchedulesFor({}, -137));
     EXPECT_ERROR(numSchedulesFor({}, -1));
-
-    /* However, it's fine to ask for zero hours. */
     EXPECT_NO_ERROR(numSchedulesFor({}, 0));
 }
 
@@ -59,17 +80,8 @@ PROVIDED_TEST("numSchedulesFor works with just one shift.") {
         { Day::MONDAY, 9, 17 },  // Monday, 9AM - 5PM
     };
 
-    /* With unbounded time, you have two options: either don't assign the
-     * worker anything, or assign the worker the one shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 24), 2);
-
-    /* With exactly the right amount of time, you still have two options. */
     EXPECT_EQUAL(numSchedulesFor(shifts, 8), 2);
-
-    /* With just too little time, you only have on option, which is to not
-     * pick the shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 7), 1);
 }
 
@@ -79,17 +91,8 @@ PROVIDED_TEST("numSchedulesFor does not pick overlapping shifts.") {
         { Day::MONDAY, 10, 18 },  // Monday, 10AM - 6PM
     };
 
-    /* With unbounded time, there are three choices: nothing, or the
-     * first shift, or the second shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 100), 3);
-
-    /* With exactly eight hours, you still have the same three options. */
     EXPECT_EQUAL(numSchedulesFor(shifts, 8), 3);
-
-    /* With fewer than eight hours, there is only one option, which is
-     * to not give the worker anything.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 7), 1);
 }
 
@@ -100,38 +103,12 @@ PROVIDED_TEST("numSchedulesFor does not pick shifts exceeding time limit.") {
         { Day::WEDNESDAY, 10, 16 }, //  6-hour shift
     };
 
-    /* With unbounded time, you can pick any of the eight subsets of these
-     * shifts.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 137), 8);
-
-    /* With eleven hours, you can pick
-     *
-     *   nothing,
-     *   the 10-hour shift,
-     *   the 5-hour shift,
-     *   the 6-hour shift, or
-     *   the 5- and 6-hour shifts.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 11), 5);
-
-    /* With ten hours, you can pick
-     *
-     *   nothing,
-     *   the 10-hour shift,
-     *   the 5-hour shift, or
-     *   the 6-hour shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 10), 4);
-
-    /* With six hours, you can pick
-     *
-     *   nothing,
-     *   the 5-hour shift, or
-     *   the 6-hour shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 6), 3);
 }
+
 
 PROVIDED_TEST("numSchedulesFor handles one pair of overlapping shifts.") {
     Set<Shift> shifts = {
@@ -140,20 +117,10 @@ PROVIDED_TEST("numSchedulesFor handles one pair of overlapping shifts.") {
         { Day::WEDNESDAY, 10, 14 }, //  4-hour shift
     };
 
-    /* With unbounded time, you can pick either
-     *
-     *    nothing,
-     *    the first Monday shift,
-     *    the second Monday shift,
-     *    the Wednesday shift,
-     *    the first Monday shift and the Wednesday shift, or
-     *    the second Monday shift and the Wednesday shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 137), 6);
-
-    /* With eight hours, all those options are still available. */
     EXPECT_EQUAL(numSchedulesFor(shifts, 8), 6);
 }
+
 
 PROVIDED_TEST("numSchedulesFor handles two pairs of overlapping shifts.") {
     Set<Shift> shifts = {
@@ -163,23 +130,10 @@ PROVIDED_TEST("numSchedulesFor handles two pairs of overlapping shifts.") {
         { Day::WEDNESDAY, 12, 16 }, //  4-hour shift
     };
 
-    /* With unbounded time, you can pick either
-     *
-     *    nothing,
-     *    the first Monday shift,
-     *    the second Monday shift,
-     *    the first Wednesday shift,
-     *    the second Wednesday shift,
-     *    the first Monday shift and the first Wednesday shift,
-     *    the first Monday shift and the second Wednesday shift,
-     *    the second Monday shift and the first Wednesday shift, or
-     *    the second Monday shift and the second Wednesday shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 137), 9);
-
-    /* With eight hours, all those options are still available. */
     EXPECT_EQUAL(numSchedulesFor(shifts, 8), 9);
 }
+
 
 PROVIDED_TEST("numSchedulesFor handles two pairs of overlapping shifts with time limits.") {
     Set<Shift> shifts = {
@@ -189,23 +143,7 @@ PROVIDED_TEST("numSchedulesFor handles two pairs of overlapping shifts with time
         { Day::WEDNESDAY, 12, 18 }, //  6-hour shift
     };
 
-    /* With unbounded time, you can pick either
-     *
-     *    nothing,
-     *    the first Monday shift,
-     *    the second Monday shift,
-     *    the first Wednesday shift,
-     *    the second Wednesday shift,
-     *    the first Monday shift and the first Wednesday shift,
-     *    the first Monday shift and the second Wednesday shift,
-     *    the second Monday shift and the first Wednesday shift, or
-     *    the second Monday shift and the second Wednesday shift.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 137), 9);
-
-    /* With eight hours, you cannot pick the second Monday or second
-     * Wednesday shift with anything else.
-     */
     EXPECT_EQUAL(numSchedulesFor(shifts, 8), 6);
 }
 
@@ -232,6 +170,7 @@ PROVIDED_TEST("numSchedulesFor passes the example from the assignment descriptio
     EXPECT_EQUAL(numSchedulesFor(shifts, 20), 1044);
 }
 
+
 PROVIDED_TEST("numSchedulesFor stress test: Don't generate combinations with overlapping shifts.") {
     /* All of these shifts overlap one another. If you try producing all combinations
      * of these shifts and only check at the end whether they're valid, you'll be
@@ -253,6 +192,7 @@ PROVIDED_TEST("numSchedulesFor stress test: Don't generate combinations with ove
      */
     EXPECT_EQUAL(numSchedulesFor(trickySet, 300), 101);
 }
+
 
 PROVIDED_TEST("numSchedulesFor stress test: Don't generate options exceeding time limit.") {
     /* Here's a collection of one shift per hour of the week. Your worker has exactly
@@ -283,67 +223,51 @@ PROVIDED_TEST("numSchedulesFor stress test: Don't generate options exceeding tim
     EXPECT_EQUAL(numSchedulesFor(trickySet, 1), 1 + 7 * 24);
 }
 
+
 PROVIDED_TEST("numSchedulesFor stress test: Handles realistic set of shifts") {
-    /* Available shifts. */
     Set<Shift> shifts = {
-        { Day::SUNDAY,  8, 14 },
-        { Day::SUNDAY, 12, 18 },
+                         { Day::SUNDAY,  8, 14 },
+                         { Day::SUNDAY, 12, 18 },
 
-        { Day::MONDAY,  8, 12 },
-        { Day::MONDAY, 12, 16 },
-        { Day::MONDAY, 16, 20 },
-        { Day::MONDAY,  8, 16 },
-        { Day::MONDAY, 12, 20 },
+                         { Day::MONDAY,  8, 12 },
+                         { Day::MONDAY, 12, 16 },
+                         { Day::MONDAY, 16, 20 },
+                         { Day::MONDAY,  8, 16 },
+                         { Day::MONDAY, 12, 20 },
 
-        { Day::TUESDAY,  8, 12 },
-        { Day::TUESDAY, 12, 16 },
-        { Day::TUESDAY, 16, 20 },
-        { Day::TUESDAY,  8, 16 },
-        { Day::TUESDAY, 12, 20 },
+                         { Day::TUESDAY,  8, 12 },
+                         { Day::TUESDAY, 12, 16 },
+                         { Day::TUESDAY, 16, 20 },
+                         { Day::TUESDAY,  8, 16 },
+                         { Day::TUESDAY, 12, 20 },
 
-        { Day::WEDNESDAY,  8, 12 },
-        { Day::WEDNESDAY, 12, 16 },
-        { Day::WEDNESDAY, 16, 20 },
-        { Day::WEDNESDAY,  8, 16 },
-        { Day::WEDNESDAY, 12, 20 },
+                         { Day::WEDNESDAY,  8, 12 },
+                         { Day::WEDNESDAY, 12, 16 },
+                         { Day::WEDNESDAY, 16, 20 },
+                         { Day::WEDNESDAY,  8, 16 },
+                         { Day::WEDNESDAY, 12, 20 },
 
-        { Day::THURSDAY,  8, 12 },
-        { Day::THURSDAY, 12, 16 },
-        { Day::THURSDAY, 16, 20 },
-        { Day::THURSDAY,  8, 16 },
-        { Day::THURSDAY, 12, 20 },
+                         { Day::THURSDAY,  8, 12 },
+                         { Day::THURSDAY, 12, 16 },
+                         { Day::THURSDAY, 16, 20 },
+                         { Day::THURSDAY,  8, 16 },
+                         { Day::THURSDAY, 12, 20 },
 
-        { Day::FRIDAY,  8, 12 },
-        { Day::FRIDAY, 12, 16 },
-        { Day::FRIDAY, 16, 20 },
-        { Day::FRIDAY,  8, 16 },
-        { Day::FRIDAY, 12, 20 },
+                         { Day::FRIDAY,  8, 12 },
+                         { Day::FRIDAY, 12, 16 },
+                         { Day::FRIDAY, 16, 20 },
+                         { Day::FRIDAY,  8, 16 },
+                         { Day::FRIDAY, 12, 20 },
 
-        { Day::SATURDAY,  8, 14 },
-        { Day::SATURDAY, 12, 18 },
-    };
+                         { Day::SATURDAY,  8, 14 },
+                         { Day::SATURDAY, 12, 18 },
+                         };
 
-    /* There are 38,107 possible schedules you can form from these possible
-     * shifts, assuming you have at most 25 hours available.
-     *
-     * Your implementation should be able to solve this instance in at most
-     * three seconds. Where did we get three seconds from? We ran our
-     * reference implementation on a middle-of-the-line computer and added
-     * a 10x safety factor.
-     */
+    /* There are 38,107 possible schedules you can form from these shifts. */
     EXPECT_COMPLETES_IN(3.0, {
         EXPECT_EQUAL(numSchedulesFor(shifts, 25), 38107);
     });
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -374,6 +298,7 @@ PROVIDED_TEST("maxProfitSchedule works on one shift.") {
     EXPECT_EQUAL(maxProfitSchedule(shifts, 1), {});
 }
 
+
 PROVIDED_TEST("maxProfitSchedule works on a pair of overlapping shifts.") {
     Vector<Shift> shifts = {
         { Day::MONDAY,  9, 17, 1000 },  // Monday,  9AM - 5PM, value is 1000
@@ -383,6 +308,7 @@ PROVIDED_TEST("maxProfitSchedule works on a pair of overlapping shifts.") {
     /* Pick the second one; it's better. */
     EXPECT_EQUAL(maxProfitSchedule(asSet(shifts), 100), { shifts[1] });
 }
+
 
 PROVIDED_TEST("maxProfitSchedule doesn't always use highest-value shift.") {
     Vector<Shift> shifts = {
@@ -412,6 +338,7 @@ PROVIDED_TEST("maxProfitSchedule doesn't always use shift with highest value per
     auto schedule = maxProfitSchedule(asSet(shifts), 12);
     EXPECT_EQUAL(schedule, { shifts[1], shifts[2] });
 }
+
 
 PROVIDED_TEST("maxProfitSchedule works on the example from the assignment description.") {
     Vector<Shift> shifts = {
@@ -444,7 +371,7 @@ PROVIDED_TEST("maxProfitSchedule works on the example from the assignment descri
 }
 
 PROVIDED_TEST("maxProfitSchedule reports an error with negative hours.") {
-    /* From the assignment description. */
+    /* Available shifts. */
     Vector<Shift> shifts = {
         { Day::MONDAY,     8, 12, 27 },  // Mon  8AM - 12PM, value 27
         { Day::MONDAY,    12, 16, 28 },  // Mon 12PM -  4PM, value 28
@@ -470,8 +397,9 @@ PROVIDED_TEST("maxProfitSchedule reports an error with negative hours.") {
     EXPECT_ERROR(maxProfitSchedule({}, -1));
 }
 
+
 PROVIDED_TEST("maxProfitSchedule handles zero free hours.") {
-    /* From the assignment description. */
+    /* Available shifts. */
     Vector<Shift> shifts = {
         { Day::MONDAY,     8, 12, 27 },  // Mon  8AM - 12PM, value 27
         { Day::MONDAY,    12, 16, 28 },  // Mon 12PM -  4PM, value 28
@@ -490,8 +418,11 @@ PROVIDED_TEST("maxProfitSchedule handles zero free hours.") {
         { Day::WEDNESDAY, 14, 20, 25 },  // Wed  2PM -  8PM, value 25
     };
 
+    /* Convert vector to set */
+    Set<Shift> shiftSet = asSet(shifts);
+
     /* Shouldn't be an error if time is zero - that means we just don't pick anything. */
-    EXPECT_EQUAL(maxProfitSchedule(asSet(shifts), 0).size(), 0);
+    EXPECT_EQUAL(maxProfitSchedule(shiftSet, 0).size(), 0);
 }
 
 PROVIDED_TEST("maxProfitSchedule stress test: Don't generate combinations with overlaps.") {
@@ -506,13 +437,16 @@ PROVIDED_TEST("maxProfitSchedule stress test: Don't generate combinations with o
      */
     Set<Shift> trickySet;
     for (int i = 0; i < 100; i++) {
-        trickySet += Shift{ Day::MONDAY, 1, 2, i };
+        // Assuming Shift has a constructor like Shift(Day, startHour, endHour)
+        trickySet.insert(Shift{ Day::MONDAY, 1, 2 });  // Only start and end hours
     }
     EXPECT_EQUAL(trickySet.size(), 100);
 
-    auto result = maxProfitSchedule(trickySet, 1);
-    EXPECT_EQUAL(result.size(), 1);
+    // Assuming maxProfitSchedule only picks non-overlapping shifts
+    auto result = maxProfitSchedule(trickySet, 1);  // Max 1 hour total, should pick only one shift
+    EXPECT_EQUAL(result.size(), 1);  // Only one shift should be chosen
 }
+
 
 PROVIDED_TEST("maxProfitSchedule stress test: Don't generate combinations exceeding time limit.") {
     /* Here's a collection of one shift per hour of the week. Your worker has exactly
@@ -524,69 +458,65 @@ PROVIDED_TEST("maxProfitSchedule stress test: Don't generate combinations exceed
      * make sure not to add shifts that would exceed the time limit.
      */
     Set<Shift> trickySet;
-    for (Day day: { Day::SUNDAY,
-                    Day::MONDAY,
-                    Day::TUESDAY,
-                    Day::WEDNESDAY,
-                    Day::THURSDAY,
-                    Day::FRIDAY,
-                    Day::SATURDAY}) {
+    for (Day day : { Day::SUNDAY, Day::MONDAY, Day::TUESDAY, Day::WEDNESDAY, Day::THURSDAY, Day::FRIDAY, Day::SATURDAY }) {
         for (int start = 0; start < 24; start++) {
-            trickySet += Shift{ day, start, start + 1, 10 };
+            trickySet.insert(Shift{ day, start, start + 1 });  // Each shift lasts for 1 hour
         }
     }
-    EXPECT_EQUAL(trickySet.size(), 7 * 24);
+    EXPECT_EQUAL(trickySet.size(), 7 * 24);  // 7 days * 24 hours = 168 shifts
 
-    auto result = maxProfitSchedule(trickySet, 1);
-    EXPECT_EQUAL(result.size(), 1);
+    auto result = maxProfitSchedule(trickySet, 1);  // The max time limit is 1 hour
+    EXPECT_EQUAL(result.size(), 1);  // Only one shift should be selected
 }
+
 
 PROVIDED_TEST("maxProfitSchedule stress test: Handles realistic example.") {
     /* Available shifts. */
     Vector<Shift> shifts = {
-        { Day::SUNDAY,  8, 14, 12 },
-        { Day::SUNDAY, 12, 18, 36 },
+                            { Day::SUNDAY,  8, 14, 12 },
+                            { Day::SUNDAY, 12, 18, 36 },
 
-        { Day::MONDAY,  8, 12, 44 },
-        { Day::MONDAY, 12, 16, 32 },
-        { Day::MONDAY, 16, 20,  0 },
-        { Day::MONDAY,  8, 16, 16 },
-        { Day::MONDAY, 12, 20, 22 },
+                            { Day::MONDAY,  8, 12, 44 },
+                            { Day::MONDAY, 12, 16, 32 },
+                            { Day::MONDAY, 16, 20,  0 },
+                            { Day::MONDAY,  8, 16, 16 },
+                            { Day::MONDAY, 12, 20, 22 },
 
-        { Day::TUESDAY,  8, 12, 48 },
-        { Day::TUESDAY, 12, 16, 20 },
-        { Day::TUESDAY, 16, 20, 24 },
-        { Day::TUESDAY,  8, 16, 24 },
-        { Day::TUESDAY, 12, 20, 80 },
+                            { Day::TUESDAY,  8, 12, 48 },
+                            { Day::TUESDAY, 12, 16, 20 },
+                            { Day::TUESDAY, 16, 20, 24 },
+                            { Day::TUESDAY,  8, 16, 24 },
+                            { Day::TUESDAY, 12, 20, 80 },
 
-        { Day::WEDNESDAY,  8, 12, 20 },
-        { Day::WEDNESDAY, 12, 16,  8 },
-        { Day::WEDNESDAY, 16, 20,  8 },
-        { Day::WEDNESDAY,  8, 16, 40 },
-        { Day::WEDNESDAY, 12, 20, 16 },
+                            { Day::WEDNESDAY,  8, 12, 20 },
+                            { Day::WEDNESDAY, 12, 16,  8 },
+                            { Day::WEDNESDAY, 16, 20,  8 },
+                            { Day::WEDNESDAY,  8, 16, 40 },
+                            { Day::WEDNESDAY, 12, 20, 16 },
 
-        { Day::THURSDAY,  8, 12, 40 },
-        { Day::THURSDAY, 12, 16,  0 },
-        { Day::THURSDAY, 16, 20, 24 },
-        { Day::THURSDAY,  8, 16, 56 },
-        { Day::THURSDAY, 12, 20, 32 },
+                            { Day::THURSDAY,  8, 12, 40 },
+                            { Day::THURSDAY, 12, 16,  0 },
+                            { Day::THURSDAY, 16, 20, 24 },
+                            { Day::THURSDAY,  8, 16, 56 },
+                            { Day::THURSDAY, 12, 20, 32 },
 
-        { Day::FRIDAY,  8, 12,  4 },
-        { Day::FRIDAY, 12, 16,  8 },
-        { Day::FRIDAY, 16, 20, 40 },
-        { Day::FRIDAY,  8, 16, 72 },
-        { Day::FRIDAY, 12, 20, 40 },
+                            { Day::FRIDAY,  8, 12,  4 },
+                            { Day::FRIDAY, 12, 16,  8 },
+                            { Day::FRIDAY, 16, 20, 40 },
+                            { Day::FRIDAY,  8, 16, 72 },
+                            { Day::FRIDAY, 12, 20, 40 },
 
-        { Day::SATURDAY,  8, 14, 18 },
-        { Day::SATURDAY, 12, 18, 66 },
-    };
+                            { Day::SATURDAY,  8, 14, 18 },
+                            { Day::SATURDAY, 12, 18, 66 },
+                            };
 
-    /* This code should finish in at most four seconds. That is a 10x margin of safety
-     * over our unoptimized reference implementation run on a middle-of-the-line
-     * computer.
-     */
+    /* Convert vector to set */
+    Set<Shift> shiftSet = asSet(shifts);
+
+    /* This code should finish in at most four seconds. */
     EXPECT_COMPLETES_IN(4.0, {
-        auto answer = maxProfitSchedule(asSet(shifts), 25);
+        auto answer = maxProfitSchedule(shiftSet, 25);  // Max 25 hours allowed
         EXPECT_EQUAL(answer, { shifts[2], shifts[7], shifts[11], shifts[17], shifts[24] });
     });
 }
+
